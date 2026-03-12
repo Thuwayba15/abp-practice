@@ -3,6 +3,7 @@ using Abp.AspNetCore.Mvc.Antiforgery;
 using Abp.AspNetCore.SignalR.Hubs;
 using Abp.Castle.Logging.Log4Net;
 using Abp.Extensions;
+using AbpPractice.ExternalPosts;
 using AbpPractice.Configuration;
 using AbpPractice.Identity;
 using Castle.Facilities.Logging;
@@ -41,6 +42,11 @@ namespace AbpPractice.Web.Host.Startup
             services.AddControllersWithViews(options =>
             {
                 options.Filters.Add(new AbpAutoValidateAntiforgeryTokenAttribute());
+            });
+
+            services.AddHttpClient<IExternalPostService, ExternalPostService>(client =>
+{
+                client.BaseAddress = new Uri("https://jsonplaceholder.typicode.com/");
             });
 
             IdentityRegistrar.Register(services);
