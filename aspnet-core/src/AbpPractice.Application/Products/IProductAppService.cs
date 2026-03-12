@@ -2,11 +2,12 @@ using Abp.Application.Services;
 using AbpPractice.Products.Dto;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Abp.Application.Services.Dto;
 
 namespace AbpPractice.Products;
 
 public interface IProductAppService : IApplicationService
 {
-    Task<List<ProductDto>> GetAllAsync();
+    Task<PagedResultDto<ProductDto>> GetAllAsync(GetProductsInput input);
     Task<ProductDto> CreateAsync(CreateProductDto input);
 }

@@ -1,4 +1,5 @@
 using Abp.Application.Services;
+using Abp.Application.Services.Dto;
 using Abp.Auditing;
 using Abp.Domain.Repositories;
 using Abp.Events.Bus;
@@ -6,6 +7,7 @@ using AbpPractice.Products.Dto;
 using AbpPractice.Products.Events;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
+using Abp.Linq.Extensions;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -23,20 +25,27 @@ public class ProductAppService : ApplicationService, IProductAppService
         _eventBus = eventBus;
     }
 
-    public async Task<List<ProductDto>> GetAllAsync()
-    {
-         return await _productRepository
-            .GetAll()
-            .Select(product => new ProductDto
-            {
-                Id = product.Id,
-                Name = product.Name,
-                Description = product.Description,
-                Price = product.Price,
-                IsActive = product.IsActive
-            })
-            .ToListAsync();
-    }
+    public async Task<PagedResultDto<ProductDto>> GetAllAsync(GetProductsInput input)
+{
+    var query = _productRepository.GetAll();
+
+    var totalCount = await query.CountAsync();
+
+    var products = await query
+        .OrderBy(p => p.Id)
+        .PageBy(input)
+        .Select(product => new ProductDto
+        {
+            Id = product.Id,
+            Name = product.Name,
+            Description = product.Description,
+            Price = product.Price,
+            IsActive = product.IsActive
+        })
+        .ToListAsync();
+
+    return new PagedResultDto<ProductDto>(totalCount, products);
+} 
 
     [Audited]
     public async Task<ProductDto> CreateAsync(CreateProductDto input)
