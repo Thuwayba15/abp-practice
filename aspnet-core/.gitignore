@@ -254,3 +254,8 @@ paket-files/
 src/AbpPractice.Web.Mvc/secrets.json
 src/AbpPractice.Web.Host/secrets.json
 src/AbpPractice.Migrator/secrets.json
+
+
+App_Data/Logs/
+*.log
+Logs/
