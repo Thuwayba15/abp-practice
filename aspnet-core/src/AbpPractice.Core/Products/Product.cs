@@ -3,6 +3,10 @@ using Abp.UI;
 
 namespace AbpPractice.Products;
 
+/// <summary>
+/// Represents a product in the domain.
+/// Encapsulates business rules related to product state and updates.
+/// </summary>
 public class Product : Entity<int>
 {
     public string Name { get; private set; }
@@ -22,7 +26,15 @@ public class Product : Entity<int>
         SetName(name);
         SetDescription(description);
         SetPrice(price);
-        IsActive = isActive;
+        SetActiveState(isActive);
+    }
+
+    public void UpdateDetails(string name, string? description, decimal price, bool isActive)
+    {
+        SetName(name);
+        SetDescription(description);
+        SetPrice(price);
+        SetActiveState(isActive);
     }
 
     public void SetName(string name)
@@ -60,13 +72,9 @@ public class Product : Entity<int>
         Price = price;
     }
 
-    public void Activate()
+    public void SetActiveState(bool isActive)
     {
-        IsActive = true;
+        IsActive = isActive;
     }
 
-    public void Deactivate()
-    {
-        IsActive = false;
-    }
 }
