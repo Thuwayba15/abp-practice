@@ -1,20 +1,17 @@
 using Abp.Domain.Entities;
-using System.ComponentModel.DataAnnotations;
+using Abp.UI;
 
 namespace AbpPractice.Products;
 
 public class Product : Entity<int>
 {
-    [Required]
-    [StringLength(100)]
-    public string Name { get; set; }
+    public string Name { get; private set; }
 
-    [StringLength(500)]
-    public string? Description { get; set; }
+    public string? Description { get; private set; }
 
-    public decimal Price { get; set; }
+    public decimal Price { get; private set; }
 
-    public bool IsActive { get; set; }
+    public bool IsActive { get; private set; }
 
     protected Product()
     {
@@ -22,9 +19,54 @@ public class Product : Entity<int>
 
     public Product(string name, string? description, decimal price, bool isActive = true)
     {
-        Name = name;
-        Description = description;
-        Price = price;
+        SetName(name);
+        SetDescription(description);
+        SetPrice(price);
         IsActive = isActive;
+    }
+
+    public void SetName(string name)
+    {
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            throw new UserFriendlyException("Product name cannot be empty.");
+        }
+
+        if (name.Length > 100)
+        {
+            throw new UserFriendlyException("Product name cannot exceed 100 characters.");
+        }
+
+        Name = name;
+    }
+
+    public void SetDescription(string? description)
+    {
+        if (description != null && description.Length > 500)
+        {
+            throw new UserFriendlyException("Product description cannot exceed 500 characters.");
+        }
+
+        Description = description;
+    }
+
+    public void SetPrice(decimal price)
+    {
+        if (price < 0)
+        {
+            throw new UserFriendlyException("Product price cannot be negative.");
+        }
+
+        Price = price;
+    }
+
+    public void Activate()
+    {
+        IsActive = true;
+    }
+
+    public void Deactivate()
+    {
+        IsActive = false;
     }
 }
