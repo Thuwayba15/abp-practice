@@ -8,4 +8,5 @@ namespace AbpPractice.Products;
 public interface IProductAppService : IApplicationService
 {
     Task<List<ProductDto>> GetAllAsync();
+    Task<ProductDto> CreateAsync(CreateProductDto input);
 }
