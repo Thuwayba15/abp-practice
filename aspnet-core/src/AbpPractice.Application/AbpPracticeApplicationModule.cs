@@ -1,4 +1,6 @@
 ﻿using Abp.AutoMapper;
+using Abp.FluentValidation;
+using Abp.FluentValidation.Configuration;
 using Abp.Modules;
 using Abp.Reflection.Extensions;
 using AbpPractice.Authorization;
@@ -7,7 +9,8 @@ namespace AbpPractice;
 
 [DependsOn(
     typeof(AbpPracticeCoreModule),
-    typeof(AbpAutoMapperModule))]
+    typeof(AbpAutoMapperModule),
+    typeof(AbpFluentValidationModule))]
 public class AbpPracticeApplicationModule : AbpModule
 {
     public override void PreInitialize()
