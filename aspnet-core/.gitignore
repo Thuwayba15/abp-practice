@@ -258,4 +258,9 @@ src/AbpPractice.Migrator/secrets.json
 
 App_Data/Logs/
 *.log
+
+# Environment files (keep example file committed)
+.env
+.env.*
+!.env.example
 Logs/
