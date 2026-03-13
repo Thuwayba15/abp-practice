@@ -1,21 +1,32 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthActions, useAuthState } from '@/providers/auth';
+import { getActiveTenants } from '@/lib/tenants';
+import type { AvailableTenant } from '@/types/auth';
 
 export default function RegisterPage() {
   const { register } = useAuthActions();
   const { isLoading, error } = useAuthState();
   const router = useRouter();
+  const [tenants, setTenants] = useState<AvailableTenant[]>([]);
+  const [isLoadingTenants, setIsLoadingTenants] = useState(true);
 
   const [form, setForm] = useState({
+    tenantId: '',
     name: '',
     surname: '',
     userName: '',
     emailAddress: '',
     password: '',
   });
+
+  useEffect(() => {
+    getActiveTenants()
+      .then(setTenants)
+      .finally(() => setIsLoadingTenants(false));
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,7 +38,8 @@ export default function RegisterPage() {
         form.surname,
         form.userName,
         form.emailAddress,
-        form.password
+        form.password,
+        Number(form.tenantId)
       );
       router.push('/dashboard');
     } catch {
@@ -69,6 +81,26 @@ export default function RegisterPage() {
             {error}
           </p>
         )}
+
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-zinc-700">
+            Tenant
+          </label>
+          <select
+            required
+            value={form.tenantId}
+            onChange={(e) => setForm({ ...form, tenantId: e.target.value })}
+            disabled={isLoadingTenants}
+            className="mt-1 w-full rounded border border-zinc-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-zinc-500"
+          >
+            <option value="">Select a tenant</option>
+            {tenants.map((tenant) => (
+              <option key={tenant.id} value={tenant.id}>
+                {tenant.name} ({tenant.tenancyName})
+              </option>
+            ))}
+          </select>
+        </div>
 
         {field('name', 'First Name')}
         {field('surname', 'Last Name')}

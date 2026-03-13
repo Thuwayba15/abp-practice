@@ -1,23 +1,36 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthActions, useAuthState } from '@/providers/auth';
+import { getActiveTenants } from '@/lib/tenants';
+import { storage } from '@/lib/storage';
+import type { AvailableTenant } from '@/types/auth';
 
 export default function LoginPage() {
   const { login } = useAuthActions();
   const { isLoading, error } = useAuthState();
   const router = useRouter();
+  const [tenants, setTenants] = useState<AvailableTenant[]>([]);
+  const [isLoadingTenants, setIsLoadingTenants] = useState(true);
 
   const [form, setForm] = useState({
+    tenantId: storage.getTenantId() ?? '',
     userNameOrEmailAddress: '',
     password: '',
   });
 
+  useEffect(() => {
+    getActiveTenants()
+      .then(setTenants)
+      .finally(() => setIsLoadingTenants(false));
+  }, []);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await login(form.userNameOrEmailAddress, form.password);
+      const tenantId = form.tenantId ? Number(form.tenantId) : null;
+      await login(form.userNameOrEmailAddress, form.password, tenantId);
       router.push('/dashboard');
     } catch {
       // error is already set in auth state and displayed below
@@ -37,6 +50,25 @@ export default function LoginPage() {
             {error}
           </p>
         )}
+
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-zinc-700">
+            Tenant
+          </label>
+          <select
+            value={form.tenantId}
+            onChange={(e) => setForm({ ...form, tenantId: e.target.value })}
+            disabled={isLoadingTenants}
+            className="mt-1 w-full rounded border border-zinc-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-zinc-500"
+          >
+            <option value="">Host (no tenant)</option>
+            {tenants.map((tenant) => (
+              <option key={tenant.id} value={tenant.id}>
+                {tenant.name} ({tenant.tenancyName})
+              </option>
+            ))}
+          </select>
+        </div>
 
         <div className="mb-4">
           <label className="block text-sm font-medium text-zinc-700">

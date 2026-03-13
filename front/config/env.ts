@@ -1,15 +1,14 @@
 const ENV = {
   API_BASE_URL:
-    process.env.NEXT_PUBLIC_API_BASE_URL ?? 'https://localhost:44311',
+    process.env.NEXT_PUBLIC_API_BASE_URL,
   TOKEN_ENDPOINT:
-    process.env.NEXT_PUBLIC_TOKEN_ENDPOINT ?? '/api/TokenAuth/Authenticate',
+    process.env.NEXT_PUBLIC_TOKEN_ENDPOINT,
   CURRENT_USER_ENDPOINT:
-    process.env.NEXT_PUBLIC_CURRENT_USER_ENDPOINT ??
-    '/api/services/app/Session/GetCurrentLoginInformations',
-  // Verify this route in Swagger — it may differ depending on ABP modules enabled
+    process.env.NEXT_PUBLIC_CURRENT_USER_ENDPOINT,
+  TENANTS_ENDPOINT:
+    process.env.NEXT_PUBLIC_TENANTS_ENDPOINT,
   REGISTER_ENDPOINT:
-    process.env.NEXT_PUBLIC_REGISTER_ENDPOINT ??
-    '/api/services/app/Account/Register',
+    process.env.NEXT_PUBLIC_REGISTER_ENDPOINT,
 } as const;
 
 export default ENV;

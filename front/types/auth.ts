@@ -31,6 +31,12 @@ export interface CurrentLoginInfo {
   } | null;
 }
 
+export interface AvailableTenant {
+  id: number;
+  name: string;
+  tenancyName: string;
+}
+
 // Auth state stored in the React context
 export interface AuthState {
   token: string | null;
@@ -44,6 +50,7 @@ export interface LoginCredentials {
   userNameOrEmailAddress: string;
   password: string;
   rememberClient: boolean;
+  tenantId?: number;
 }
 
 // Registration request body — verify field names match your backend in Swagger
@@ -53,4 +60,5 @@ export interface RegisterPayload {
   userName: string;
   emailAddress: string;
   password: string;
+  tenantId: number;
 }

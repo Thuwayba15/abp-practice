@@ -9,13 +9,18 @@ export const initialState: AuthState = {
 };
 
 export interface AuthActions {
-  login: (userNameOrEmailAddress: string, password: string) => Promise<void>;
+  login: (
+    userNameOrEmailAddress: string,
+    password: string,
+    tenantId?: number | null
+  ) => Promise<void>;
   register: (
     name: string,
     surname: string,
     userName: string,
     emailAddress: string,
-    password: string
+    password: string,
+    tenantId: number
   ) => Promise<void>;
   logout: () => void;
 }

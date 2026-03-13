@@ -19,9 +19,33 @@ import type { AbpResponse, TokenResult, CurrentLoginInfo } from '@/types/auth';
 // Re-export hooks so consumers only import from '@/providers/auth'
 export { useAuthState, useAuthActions } from './context';
 
+const toTenantHeaders = (tenantId?: number | null): Record<string, string> => {
+  if (!tenantId || tenantId <= 0) {
+    return {};
+  }
+
+  return {
+    'Abp-TenantId': String(tenantId),
+  };
+};
+
+const requireEndpoint = (
+  endpoint: string | undefined,
+  envName: string
+): string => {
+  if (!endpoint) {
+    throw new Error(`Missing required endpoint configuration: ${envName}`);
+  }
+
+  return endpoint;
+};
+
 const fetchCurrentUser = async (): Promise<CurrentLoginInfo['user']> => {
   const res = await apiClient.get<AbpResponse<CurrentLoginInfo>>(
-    ENV.CURRENT_USER_ENDPOINT
+    requireEndpoint(
+      ENV.CURRENT_USER_ENDPOINT,
+      'NEXT_PUBLIC_CURRENT_USER_ENDPOINT'
+    )
   );
   return res.data.result.user;
 };
@@ -50,16 +74,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   }, []);
 
   const login = useCallback(
-    async (userNameOrEmailAddress: string, password: string) => {
+    async (
+      userNameOrEmailAddress: string,
+      password: string,
+      tenantId?: number | null
+    ) => {
       dispatch(setLoading(true));
       dispatch(setError(null));
       try {
+        if (tenantId && tenantId > 0) {
+          storage.setTenantId(tenantId);
+        } else if (tenantId === null) {
+          storage.clearTenantId();
+        }
+
         // POST /api/TokenAuth/Authenticate
         // If this fails with a client/scope error, check Swagger for required extra fields
         // (some ABP setups need client_id / scope in the body)
         const res = await apiClient.post<AbpResponse<TokenResult>>(
-          ENV.TOKEN_ENDPOINT,
-          { userNameOrEmailAddress, password, rememberClient: true }
+          requireEndpoint(ENV.TOKEN_ENDPOINT, 'NEXT_PUBLIC_TOKEN_ENDPOINT'),
+          { userNameOrEmailAddress, password, rememberClient: true },
+          { headers: toTenantHeaders(tenantId) }
         );
 
         // NOTE: ABP classic may return the field as "accessToken" or "AccessToken".
@@ -67,6 +102,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         const token =
           res.data.result.accessToken ??
           (res.data.result as any).AccessToken; // eslint-disable-line @typescript-eslint/no-explicit-any
+
+        if (!token || typeof token !== 'string') {
+          throw new Error('Authentication response did not include a valid access token.');
+        }
 
         storage.setToken(token);
         dispatch(loginSuccess(token));
@@ -93,23 +132,39 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       surname: string,
       userName: string,
       emailAddress: string,
-      password: string
+      password: string,
+      tenantId: number
     ) => {
       dispatch(setLoading(true));
       dispatch(setError(null));
       try {
+        if (!tenantId || Number.isNaN(tenantId)) {
+          throw new Error('Please select a tenant before registering.');
+        }
+
+        storage.setTenantId(tenantId);
+
         // POST /api/services/app/Account/Register
         // Verify this route in Swagger — it is the one most likely to differ
-        await apiClient.post(ENV.REGISTER_ENDPOINT, {
-          name,
-          surname,
-          userName,
-          emailAddress,
-          password,
-        });
+        await apiClient.post(
+          requireEndpoint(
+            ENV.REGISTER_ENDPOINT,
+            'NEXT_PUBLIC_REGISTER_ENDPOINT'
+          ),
+          {
+            name,
+            surname,
+            userName,
+            emailAddress,
+            password,
+          },
+          {
+            headers: toTenantHeaders(tenantId),
+          }
+        );
 
         // Auto-login after successful registration
-        await login(userName, password);
+        await login(userName, password, tenantId);
       } catch (err: any) { // eslint-disable-line @typescript-eslint/no-explicit-any
         const msg =
           err?.response?.data?.error?.message ??
