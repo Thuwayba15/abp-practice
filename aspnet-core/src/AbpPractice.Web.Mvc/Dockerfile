@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 
 RUN dotnet tool install -g Microsoft.Web.LibraryManager.Cli
 RUN ln -s ~/.dotnet/tools/libman /usr/local/bin/libman
@@ -22,7 +22,7 @@ WORKDIR "/src/src/AbpPractice.Web.Mvc"
 RUN libman restore
 RUN dotnet publish -c Release -o /publish --no-restore
 
-FROM mcr.microsoft.com/dotnet/aspnet:8.0
+FROM mcr.microsoft.com/dotnet/aspnet:9.0
 EXPOSE 80
 WORKDIR /app
 COPY --from=build /publish .
